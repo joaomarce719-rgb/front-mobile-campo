@@ -1,176 +1,167 @@
 'use client';
 
 import React, { useState } from 'react';
-import { enviarRegistroNoturno } from '../../services/monitoramentoService';
-import { RegistroNoturnoPayload } from '../../types/monitoramento';
 
 export default function MonitoramentoNoturnoPage() {
-  const [viveiroId, setViveiroId] = useState<string>('02');
-  const [oxigenio, setOxigenio] = useState<number>(3.8);
-  const [temperatura, setTemperatura] = useState<number>(28.5);
+  // Estados para os parâmetros de qualidade da água
+  const [od, setOd] = useState<number>(3.8);
+  const [temp, setTemp] = useState<number>(28.5);
+
+  // Estados para os botões de ação imediata
   const [aeradoresLigados, setAeradoresLigados] = useState<boolean>(true);
   const [mortalidade, setMortalidade] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const ajustarOxigenio = (valor: number) => {
-    setOxigenio((prev) => Number(Math.max(0, prev + valor).toFixed(1)));
-  };
-
-  const ajustarTemperatura = (valor: number) => {
-    setTemperatura((prev) => Number(Math.max(0, prev + valor).toFixed(1)));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const payload: RegistroNoturnoPayload = {
-      viveiroId,
-      dataHoraLeitura: new Date().toISOString(),
-      oxigenioDissolvido: oxigenio,
-      temperaturaAgua: temperatura,
+  // Simulação de submissão para a API RESTful[cite: 5]
+  const salvarLeitura = () => {
+    const payload = {
+      viveiroId: '02',
+      oxigenioDissolvido: od,
+      temperatura: temp,
       aeradoresLigados,
-      mortalidadeEncontrada: mortalidade,
+      mortalidadeIdentificada: mortalidade,
+      timestamp: new Date().toISOString()
     };
-
-    try {
-      await enviarRegistroNoturno(payload);
-      alert('Leitura da ronda noturna salva com sucesso!');
-    } catch (error) {
-      alert('Erro ao salvar os dados. Verifique sua conexão.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    console.log('A enviar para o Back-end (FastAPI):', payload);
+    alert('Leitura da ronda noturna guardada com sucesso!');
   };
 
   return (
-    <main className="flex flex-col min-h-screen bg-slate-900 text-slate-100 p-4 font-sans">
-      <header className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xl">🌙</span>
-          <h1 className="text-lg font-bold">Ronda Noturna</h1>
+    <main className="flex flex-col min-h-screen bg-[#0f172a] text-slate-200 font-sans p-4 pb-24">
+      {/* CABEÇALHO ESCURO */}
+      <header className="mb-6 mt-2">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex items-center gap-2">
+            <span className="bg-indigo-500/20 text-indigo-400 p-1.5 rounded-lg text-sm">🌙</span>
+            <div>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Aquasad • Visão Noturna</span>
+              <h1 className="text-xl font-bold text-white leading-tight">Ronda Noturna</h1>
+            </div>
+          </div>
+          <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-bold px-2 py-1 rounded-full">
+            Ronda: 22:00 - 04:00
+          </span>
         </div>
-        <div className="flex justify-between text-xs text-slate-400">
-          <span>Modo Noturno Ativo</span>
-          <span>Ronda: 22:00 - 04:00</span>
+        <div className="flex items-center gap-1 mt-1">
+          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+          <span className="text-[10px] text-slate-400">Modo Noturno Ativo • Sincronizado</span>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-grow">
-        <section className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-          <label className="text-xs font-bold text-slate-400 uppercase mb-2 block">
-            Viveiro em Monitoramento
-          </label>
-          <select
-            value={viveiroId}
-            onChange={(e) => setViveiroId(e.target.value)}
-            className="w-full p-3 bg-slate-900 border border-slate-600 rounded-lg font-medium text-white"
-          >
-            <option value="02">Viveiro 02 (Litopenaeus vannamei - 72 Dias)</option>
-            <option value="04">Viveiro 04 (Litopenaeus vannamei - 45 Dias)</option>
-          </select>
-        </section>
+      {/* SELEÇÃO E INFORMAÇÃO DO VIVEIRO[cite: 13] */}
+      <section className="bg-[#1e293b] rounded-2xl p-4 mb-4 shadow-lg border border-slate-700/50">
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Viveiro em Monitoramento</span>
+          <span className="text-[10px] text-blue-400 font-bold">LOTE #2024</span>
+        </div>
 
-        <section
-          className={`p-4 rounded-xl border ${
-            oxigenio < 4.0 ? 'border-red-500 bg-red-950/30' : 'border-slate-700 bg-slate-800'
-          }`}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <label className="text-sm font-bold text-slate-200">Oxigênio Dissolvido (OD)</label>
-            <span className="text-xs text-slate-400">Ideal &gt; 4.0</span>
-          </div>
-          <div className="flex items-center justify-between gap-4 bg-slate-900 p-3 rounded-xl border border-slate-700">
-            <button
-              type="button"
-              onClick={() => ajustarOxigenio(-0.1)}
-              className="w-12 h-12 bg-slate-800 text-slate-300 rounded-lg font-bold text-lg"
-            >
-              - 0.1
-            </button>
-            <div className="flex flex-col items-center">
-              <span className="text-4xl font-black text-white">{oxigenio.toFixed(1)}</span>
-              <span className="text-xs text-slate-400 mt-1">MG/L REGISTRADO</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => ajustarOxigenio(0.1)}
-              className="w-12 h-12 bg-blue-600 text-white rounded-lg font-bold text-lg"
-            >
-              + 0.1
-            </button>
-          </div>
-          {oxigenio < 4.0 && (
-            <div className="mt-3 bg-red-500/20 text-red-400 text-xs p-2 rounded flex items-center gap-2 font-bold border border-red-500/30">
-              ⚠️ ABAIXO DO IDEAL: LIGAR AERADORES
-            </div>
-          )}
-        </section>
+        <select className="w-full bg-[#0f172a] border border-slate-700 text-white text-sm font-bold p-3 rounded-xl outline-none mb-4 appearance-none">
+          <option>Viveiro 02 (Litopenaeus vannamei - 72 Dias)</option>
+          <option>Viveiro 03 (Berçário - 28 Dias)</option>
+        </select>
 
-        <section className="bg-slate-800 p-4 rounded-xl border border-orange-500/50">
-          <div className="flex justify-between items-center mb-4">
-            <label className="text-sm font-bold text-slate-200">Temperatura da Água (°C)</label>
-            <span className="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Normal</span>
+        <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-[10px] bg-[#0f172a]/50 p-3 rounded-xl border border-slate-700/50">
+          <div className="flex justify-between border-b border-slate-700/50 pb-1">
+            <span className="text-slate-500">Área</span>
+            <span className="text-slate-300 font-bold">10.000m² (1.0 ha)</span>
           </div>
-          <div className="flex items-center justify-between gap-4 bg-slate-900 p-3 rounded-xl border border-slate-700">
-            <button
-              type="button"
-              onClick={() => ajustarTemperatura(-0.5)}
-              className="w-12 h-12 bg-slate-800 text-slate-300 rounded-lg font-bold text-lg"
-            >
-              - 0.5
-            </button>
-            <div className="flex flex-col items-center">
-              <span className="text-4xl font-black text-white">{temperatura.toFixed(1)}</span>
-              <span className="text-xs text-slate-400 mt-1">GRAUS CELSIUS (°C)</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => ajustarTemperatura(0.5)}
-              className="w-12 h-12 bg-orange-600 text-white rounded-lg font-bold text-lg"
-            >
-              + 0.5
-            </button>
+          <div className="flex justify-between border-b border-slate-700/50 pb-1">
+            <span className="text-slate-500">Biomassa Est.</span>
+            <span className="text-slate-300 font-bold">2.400 kg</span>
           </div>
-        </section>
+          <div className="flex justify-between">
+            <span className="text-slate-500">Peso Médio</span>
+            <span className="text-slate-300 font-bold">12.5g</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">Sobrevivência</span>
+            <span className="text-emerald-400 font-bold">70%</span>
+          </div>
+        </div>
+      </section>
 
-        <section className="grid grid-cols-2 gap-3 mt-2">
+      {/* CARTÃO: OXIGÉNIO DISSOLVIDO[cite: 13] */}
+      <section className="bg-[#1e293b] rounded-2xl p-4 mb-4 shadow-lg border border-cyan-500/30">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-cyan-500/20 text-cyan-400 p-2 rounded-lg">💧</div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Oxigênio Dissolvido (OD)</h2>
+              <p className="text-[10px] text-slate-400">Unidade de medida: mg/L (ppm)</p>
+            </div>
+          </div>
+          <span className="bg-slate-800 text-slate-300 text-[9px] font-bold px-2 py-1 rounded-lg">Ideal &gt; 4.0</span>
+        </div>
+
+        <div className="flex justify-between items-center bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 mb-3">
+          <button onClick={() => setOd(prev => +(prev - 0.1).toFixed(1))} className="w-12 h-12 bg-slate-800 hover:bg-slate-700 rounded-lg text-white font-bold text-lg border border-slate-600 transition-colors">-0.1</button>
+          <div className="text-center">
+            <span className="text-4xl font-black text-white">{od.toFixed(1)}</span>
+            <p className="text-[9px] font-bold text-slate-500 mt-1 tracking-widest">MG/L REGISTRADO</p>
+          </div>
+          <button onClick={() => setOd(prev => +(prev + 0.1).toFixed(1))} className="w-12 h-12 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white font-bold text-lg transition-colors">+0.1</button>
+        </div>
+
+        {/* ALERTA CONDICIONAL[cite: 13] */}
+        {od < 4.0 && (
+          <div className="bg-red-950/50 border border-red-500/50 rounded-xl p-3 flex items-start gap-3">
+            <span className="text-red-500 mt-0.5">⚠️</span>
+            <div>
+              <h3 className="text-[11px] font-bold text-red-400">ABAIXO DO IDEAL - LIGAR AERADORES</h3>
+              <p className="text-[9px] text-red-400/80 mt-0.5">Risco de estresse biológico por anóxia durante a madrugada.</p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* CARTÃO: TEMPERATURA[cite: 13] */}
+      <section className="bg-[#1e293b] rounded-2xl p-4 mb-4 shadow-lg border border-orange-500/30">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <div className="bg-orange-500/20 text-orange-400 p-2 rounded-lg">🌡️</div>
+            <div>
+              <h2 className="text-sm font-bold text-white">Temperatura da Água (°C)</h2>
+              <p className="text-[10px] text-slate-400">Faixa ideal: 28.0°C - 30.0°C</p>
+            </div>
+          </div>
+          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold px-2 py-1 rounded-lg">✓ Normal</span>
+        </div>
+
+        <div className="flex justify-between items-center bg-[#0f172a] p-3 rounded-xl border border-slate-700/50 mb-3">
+          <button onClick={() => setTemp(prev => +(prev - 0.5).toFixed(1))} className="w-12 h-12 bg-slate-800 hover:bg-slate-700 rounded-lg text-white font-bold text-lg border border-slate-600 transition-colors">-0.5</button>
+          <div className="text-center">
+            <span className="text-4xl font-black text-white">{temp.toFixed(1)}</span>
+            <p className="text-[9px] font-bold text-slate-500 mt-1 tracking-widest">GRAUS CELSIUS (°C)</p>
+          </div>
+          <button onClick={() => setTemp(prev => +(prev + 0.5).toFixed(1))} className="w-12 h-12 bg-orange-600 hover:bg-orange-500 rounded-lg text-white font-bold text-lg transition-colors">+0.5</button>
+        </div>
+      </section>
+
+      {/* AÇÕES IMEDIATAS[cite: 13] */}
+      <section className="mb-6">
+        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Ações Imediatas no Viveiro</h3>
+        <div className="grid grid-cols-2 gap-3">
           <button
-            type="button"
             onClick={() => setAeradoresLigados(!aeradoresLigados)}
-            className={`p-3 rounded-xl border flex flex-col items-center ${
-              aeradoresLigados
-                ? 'border-emerald-500 bg-emerald-900/40 text-emerald-400'
-                : 'border-slate-600 bg-slate-800 text-slate-400'
-            }`}
+            className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-colors ${aeradoresLigados ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-400' : 'bg-[#1e293b] border-slate-700 text-slate-400'}`}
           >
-            <span className="font-bold text-sm">Aeradores Ligados</span>
-            <span className="text-xs opacity-70">Ação no Controle</span>
+            <span className="text-sm font-bold">🌀 Aeradores</span>
+            <span className="text-[9px]">{aeradoresLigados ? 'Ligados' : 'Desligados'}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setMortalidade(!mortalidade)}
-            className={`p-3 rounded-xl border flex flex-col items-center ${
-              mortalidade
-                ? 'border-red-500 bg-red-900/40 text-red-400'
-                : 'border-slate-600 bg-slate-800 text-slate-400'
-            }`}
-          >
-            <span className="font-bold text-sm">Mortalidade</span>
-            <span className="text-xs opacity-70">Registrar Ocorrência</span>
-          </button>
-        </section>
 
-        <div className="mt-auto pt-6 pb-4">
           <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-xl font-bold shadow-lg disabled:opacity-50 transition-colors"
+            onClick={() => setMortalidade(!mortalidade)}
+            className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-colors ${mortalidade ? 'bg-red-950/50 border-red-500/50 text-red-400' : 'bg-[#1e293b] border-slate-700 text-slate-400'}`}
           >
-            {isSubmitting ? 'Salvando...' : 'Salvar Leitura da Ronda'}
+            <span className="text-sm font-bold">⚠️ Mortalidade</span>
+            <span className="text-[9px]">{mortalidade ? 'Identificada' : 'Nenhuma'}</span>
           </button>
         </div>
-      </form>
+      </section>
+
+      {/* BOTÃO SALVAR[cite: 13] */}
+      <button onClick={salvarLeitura} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold p-4 rounded-xl shadow-lg transition-colors flex justify-center items-center gap-2">
+        <span>💾</span> Salvar Leitura da Ronda
+      </button>
     </main>
   );
 }
