@@ -1,4 +1,4 @@
-import { DadosCentralOperador } from '../types/operador';
+import type { DadosCentralOperador } from '../types/operador';
 
 export async function obterDadosCentral(): Promise<DadosCentralOperador> {
   try {
